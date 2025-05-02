@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { claimAirdrop } from '@/lib/solana'
+import { SOL_TOKEN_MINT } from '../constants'
 
 interface AirdropState {
     isClaiming: boolean
@@ -40,7 +41,7 @@ export const useAirdrop = () => {
         }))
 
         try {
-            const result = await claimAirdrop(publicKey.toBase58(),0.00001)
+            const result = await claimAirdrop(publicKey.toBase58(), SOL_TOKEN_MINT) // Adjust the amount as needed
 
             if (result.success) {
                 setAirdropState({
