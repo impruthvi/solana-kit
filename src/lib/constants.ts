@@ -1,0 +1,1 @@
+export const SOL_TOKEN_MINT = 0.0005;
