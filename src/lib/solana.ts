@@ -5,7 +5,19 @@ import {
     clusterApiUrl,
     Transaction,
     SystemProgram,
+    Keypair,
 } from '@solana/web3.js';
+
+import {
+    createInitializeMintInstruction,
+    TOKEN_PROGRAM_ID,
+    MINT_SIZE,
+    getMinimumBalanceForRentExemptMint,
+    getAssociatedTokenAddress,
+    createAssociatedTokenAccountInstruction,
+    createMintToInstruction
+} from '@solana/spl-token';
+
 import { SOL_TOKEN_MINT } from './constants';
 import { WalletContextState } from '@solana/wallet-adapter-react';
 
@@ -108,21 +120,6 @@ export const claimAirdrop = async (
         };
     }
 };
-
-
-/**
- * Type definition for wallet interface that should be compatible with most Solana wallets
- */
-interface WalletAdapter {
-    publicKey: PublicKey;
-    signTransaction: (transaction: Transaction) => Promise<Transaction>;
-    signAllTransactions?: (transactions: Transaction[]) => Promise<Transaction[]>;
-    sendTransaction: (
-        transaction: Transaction,
-        connection: Connection,
-        options?: { skipPreflight?: boolean; preflightCommitment?: string }
-    ) => Promise<string>;
-}
 
 /**
  * Transfers SOL from connected wallet to another address
@@ -240,6 +237,221 @@ export const transferSOL = async (
         return {
             success: false,
             error: (error as Error).message || "Unknown error occurred during transfer."
+        };
+    }
+};
+
+/**
+ * Interface for token creation parameters
+ */
+export interface TokenCreateParams {
+    name: string;
+    symbol: string;
+    decimals: number;
+    totalSupply: number;
+    mintAuthority: string;
+    freezeAuthority?: string | null;
+    description?: string;
+    websiteUrl?: string;
+    metadataUri?: string;
+}
+
+/**
+ * Creates a new Solana SPL Token
+ * @param wallet Connected wallet adapter (Phantom, Solflare, etc.)
+ * @param tokenParams Token creation parameters
+ * @returns Object containing transaction details or error message
+ */
+export const createSolanaToken = async (
+    wallet: WalletContextState,
+    tokenParams: TokenCreateParams
+): Promise<{
+    success: boolean;
+    signature?: string;
+    error?: string;
+    tokenAddress?: string;
+    tokenAccountAddress?: string;
+}> => {
+    try {
+        console.log("Creating Solana token with params:", tokenParams);
+
+        // Check if wallet is connected
+        if (!wallet || !wallet.publicKey) {
+            return {
+                success: false,
+                error: "Wallet not connected. Please connect your wallet first."
+            };
+        }
+
+        // Validate mint authority address
+        if (!isValidSolanaAddress(tokenParams.mintAuthority)) {
+            return {
+                success: false,
+                error: "Invalid mint authority Solana wallet address."
+            };
+        }
+
+        // Validate freeze authority if provided
+        if (tokenParams.freezeAuthority && !isValidSolanaAddress(tokenParams.freezeAuthority)) {
+            return {
+                success: false,
+                error: "Invalid freeze authority Solana wallet address."
+            };
+        }
+
+        // Validate decimals
+        if (tokenParams.decimals < 0 || tokenParams.decimals > 9) {
+            return {
+                success: false,
+                error: "Decimals must be between 0 and 9."
+            };
+        }
+
+        // Validate total supply
+        if (tokenParams.totalSupply <= 0) {
+            return {
+                success: false,
+                error: "Total supply must be greater than zero."
+            };
+        }
+
+        // Setup connection
+        const connection = getConnection();
+        const payer = wallet.publicKey;
+        const mintAuthority = new PublicKey(tokenParams.mintAuthority);
+        const freezeAuthority = tokenParams.freezeAuthority
+            ? new PublicKey(tokenParams.freezeAuthority)
+            : null;
+
+        // Create a new mint keypair
+        const mintKeypair = Keypair.generate();
+        console.log("Token mint address:", mintKeypair.publicKey.toString());
+
+        // Calculate rent-exempt minimum balance
+        const requiredLamports = await getMinimumBalanceForRentExemptMint(connection);
+
+        // Check payer's balance
+        const payerBalance = await connection.getBalance(payer);
+        const estimatedFees = requiredLamports + 10000000; // Add buffer for transaction fees
+
+        if (payerBalance < estimatedFees) {
+            return {
+                success: false,
+                error: `Insufficient balance for token creation. Required: ${estimatedFees / LAMPORTS_PER_SOL} SOL, Available: ${payerBalance / LAMPORTS_PER_SOL} SOL.`
+            };
+        }
+
+        // Create transaction for token creation
+        const transaction = new Transaction();
+
+        // Add instruction to create account for the mint
+        transaction.add(
+            SystemProgram.createAccount({
+                fromPubkey: payer,
+                newAccountPubkey: mintKeypair.publicKey,
+                lamports: requiredLamports,
+                space: MINT_SIZE,
+                programId: TOKEN_PROGRAM_ID
+            })
+        );
+
+        // Add instruction to initialize the mint
+        transaction.add(
+            createInitializeMintInstruction(
+                mintKeypair.publicKey,
+                tokenParams.decimals,
+                mintAuthority,
+                freezeAuthority,
+                TOKEN_PROGRAM_ID
+            )
+        );
+
+        // If we want to also mint tokens to owner, we need to create a token account
+        // Get the associated token account address
+        const associatedTokenAccount = await getAssociatedTokenAddress(
+            mintKeypair.publicKey,
+            mintAuthority
+        );
+
+        // Create associated token account for the token owner
+        transaction.add(
+            createAssociatedTokenAccountInstruction(
+                payer,
+                associatedTokenAccount,
+                mintAuthority,
+                mintKeypair.publicKey
+            )
+        );
+
+        // Mint tokens to the token account
+        const mintAmount = tokenParams.totalSupply * (10 ** tokenParams.decimals);
+        transaction.add(
+            createMintToInstruction(
+                mintKeypair.publicKey,
+                associatedTokenAccount,
+                mintAuthority,
+                BigInt(mintAmount)
+            )
+        );
+
+        // Set recent blockhash and fee payer
+        transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+        transaction.feePayer = payer;
+
+        // Sign transaction with the mint keypair and wallet
+        if (!wallet.signTransaction) {
+            return {
+                success: false,
+                error: "Wallet does not support transaction signing"
+            };
+        }
+
+        // Partially sign with the mint keypair
+        transaction.partialSign(mintKeypair);
+
+        // Sign with wallet
+        const signedTransaction = await wallet.signTransaction(transaction);
+
+        // Send and confirm transaction
+        console.log("Sending token creation transaction...");
+        const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+
+        // Poll until confirmed (up to 60s)
+        const maxRetries = 30;
+        let confirmed = false;
+
+        for (let i = 0; i < maxRetries; i++) {
+            const status = await connection.getSignatureStatus(signature);
+            const confirmation = status.value?.confirmationStatus;
+            if (confirmation === 'confirmed' || confirmation === 'finalized') {
+                confirmed = true;
+                break;
+            }
+            await new Promise((res) => setTimeout(res, 2000)); // Wait 2s
+        }
+
+        if (!confirmed) {
+            throw new Error("Transaction not confirmed after multiple retries.");
+        }
+
+        console.log("Token creation complete. Signature:", signature);
+        console.log("Token Address:", mintKeypair.publicKey.toString());
+        console.log("Token Account Address:", associatedTokenAccount.toString());
+
+        // If metadata is provided, we could add metadata but this requires additional setup
+        // This would typically use the Metaplex standard to add metadata
+
+        return {
+            success: true,
+            signature,
+            tokenAddress: mintKeypair.publicKey.toString(),
+            tokenAccountAddress: associatedTokenAccount.toString()
+        };
+    } catch (error) {
+        console.error("Token creation failed:", error);
+        return {
+            success: false,
+            error: (error as Error).message || "Unknown error occurred during token creation."
         };
     }
 };

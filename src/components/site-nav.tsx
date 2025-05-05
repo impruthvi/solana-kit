@@ -15,6 +15,7 @@ const SiteNav = ({ className }: SiteNavProps) => {
     { title: "Home", href: "/" },
     { title: "Airdrop", href: "/airdrop" },
     { title: "Transaction", href: "/transaction" },
+    { title: "Create Token", href: "/create-token" },
     { title: "Eligibility", href: "/eligibility" },
     { title: "FAQ", href: "/faq" },
   ];
