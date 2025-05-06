@@ -27,7 +27,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 type Transaction = {
   signature: string;
   blockTime: number | null;
-  confirmationStatus: string;
+  confirmationStatus: string | null;
   err: Record<string, unknown> | null;
   memo: string | null;
   details: {
@@ -59,7 +59,13 @@ const TransactionHistoryView = () => {
     const result = await getWalletTransactions(publicKey?.toString() || "", 10);
 
     if (result.success && result.transactions) {
-      setTransactions(result.transactions);
+      setTransactions(
+        result.transactions.map((tx) => ({
+          ...tx,
+          err: tx.err as Record<string, unknown> | null,
+          details: tx.details as Transaction["details"],
+        }))
+      );
     } else {
       setError(result.error || "Failed to fetch transactions");
     }

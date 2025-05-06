@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { PublicKey } from '@solana/web3.js'
 
 interface WalletState {
     balance: number | null

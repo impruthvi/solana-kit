@@ -84,9 +84,6 @@ const CreateTokenForm = () => {
     setResult(null);
 
     try {
-      // Log the values to console as requested
-      console.log("Token Creation Form Values:", values);
-      
       // Create token parameters
       const tokenParams: TokenCreateParams = {
         name: values.tokenName,

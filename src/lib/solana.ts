@@ -30,7 +30,6 @@ const getConnection = (() => {
                 commitment: 'confirmed',
                 confirmTransactionInitialTimeout: 60000,
             });
-            console.log(`Solana connection created with RPC URL: ${rpcUrl}`);
         }
         return connection;
     };
@@ -72,8 +71,6 @@ export const claimAirdrop = async (
     newBalance?: number;
 }> => {
     try {
-        console.log("Claiming airdrop for wallet:", walletAddress);
-
         if (!isValidSolanaAddress(walletAddress)) {
             return {
                 success: false,
@@ -86,7 +83,6 @@ export const claimAirdrop = async (
         const lamports = amount * LAMPORTS_PER_SOL;
 
         const signature = await connection.requestAirdrop(publicKey, lamports);
-        console.log("Airdrop requested, signature:", signature);
 
         // Poll until confirmed (up to 60s)
         const maxRetries = 30;
@@ -140,8 +136,6 @@ export const transferSOL = async (
     senderNewBalance?: number;
 }> => {
     try {
-        console.log("Transferring SOL to:", receiverAddress);
-
         // Check if wallet is connected
         if (!wallet || !wallet.publicKey) {
             return {
@@ -199,7 +193,6 @@ export const transferSOL = async (
         transaction.feePayer = senderPublicKey;
 
         // Send transaction using connected wallet
-        console.log("Sending transaction...");
         const signature = await wallet.sendTransaction(transaction, connection);
 
 
@@ -220,8 +213,6 @@ export const transferSOL = async (
         if (!confirmed) {
             throw new Error("Transaction not confirmed after multiple retries.");
         }
-
-        console.log("Transfer complete. Signature:", signature);
 
         // Get updated sender balance
         const newSenderBalance = await connection.getBalance(senderPublicKey);
@@ -273,8 +264,6 @@ export const createSolanaToken = async (
     tokenAccountAddress?: string;
 }> => {
     try {
-        console.log("Creating Solana token with params:", tokenParams);
-
         // Check if wallet is connected
         if (!wallet || !wallet.publicKey) {
             return {
@@ -325,7 +314,6 @@ export const createSolanaToken = async (
 
         // Create a new mint keypair
         const mintKeypair = Keypair.generate();
-        console.log("Token mint address:", mintKeypair.publicKey.toString());
 
         // Calculate rent-exempt minimum balance
         const requiredLamports = await getMinimumBalanceForRentExemptMint(connection);
@@ -413,7 +401,6 @@ export const createSolanaToken = async (
         const signedTransaction = await wallet.signTransaction(transaction);
 
         // Send and confirm transaction
-        console.log("Sending token creation transaction...");
         const signature = await connection.sendRawTransaction(signedTransaction.serialize());
 
         // Poll until confirmed (up to 60s)
@@ -433,11 +420,6 @@ export const createSolanaToken = async (
         if (!confirmed) {
             throw new Error("Transaction not confirmed after multiple retries.");
         }
-
-        console.log("Token creation complete. Signature:", signature);
-        console.log("Token Address:", mintKeypair.publicKey.toString());
-        console.log("Token Account Address:", associatedTokenAccount.toString());
-
         // If metadata is provided, we could add metadata but this requires additional setup
         // This would typically use the Metaplex standard to add metadata
 
@@ -467,12 +449,17 @@ export const getWalletTransactions = async (
     limit: number = 10
 ): Promise<{
     success: boolean;
-    transactions?: Array<any>;
+    transactions?: Array<{
+        signature: string;
+        blockTime: number | null;
+        confirmationStatus: string | null;
+        err: unknown;
+        memo: string | null;
+        details: unknown;
+    }>;
     error?: string;
 }> => {
     try {
-        console.log("Getting transactions for wallet:", walletAddress);
-
         if (!isValidSolanaAddress(walletAddress)) {
             return {
                 success: false,
@@ -521,11 +508,14 @@ export const getWalletTransactions = async (
             })
         );
 
-        console.log(`Retrieved ${transactions.length} transactions for wallet`);
-
         return {
             success: true,
-            transactions
+            transactions: transactions.map(tx => ({
+                ...tx,
+                blockTime: tx.blockTime ?? null, // Convert undefined to null
+                confirmationStatus: tx.confirmationStatus ?? null, // Ensure string | null
+                details: tx.details ?? null // Ensure unknown type compatibility
+            }))
         };
     } catch (error) {
         console.error("Failed to fetch wallet transactions:", error);
