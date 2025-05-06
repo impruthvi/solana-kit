@@ -9,7 +9,7 @@ const Header = () => {
         <div className="flex items-center">
           <Link href="/" className="flex items-center space-x-2">
             <span className="font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-orange-500">
-              SOL Airdrop
+              Solana Kit
             </span>
           </Link>
           <SiteNav className="ml-6 hidden md:flex" />

@@ -10,44 +10,44 @@ import {
 const FaqAccordion = () => {
   const faqItems = [
     {
-      question: "What is the SOL Airdrop?",
+      question: "What is Solana Kit?",
       answer:
-        "The SOL Airdrop is a token distribution event where eligible Solana wallet addresses can claim a predetermined amount of SOL tokens for free. This airdrop aims to reward early supporters and users of the Solana ecosystem.",
+        "Solana Kit is an all-in-one toolkit for interacting with the Solana blockchain. It allows users to create tokens, transfer SOL, view transaction history, and participate in events like airdrops — all from one interface.",
     },
     {
-      question: "How do I check if I'm eligible?",
+      question: "Can I still claim the SOL Airdrop?",
       answer:
-        "You can check your eligibility by connecting your Solana wallet on the Airdrop page or by entering your Solana wallet address in the Eligibility page. The system will automatically verify if your address meets the criteria for the airdrop.",
+        "Yes, the SOL Airdrop feature is still available. You can check eligibility and claim your tokens directly through the Airdrop section in Solana Kit.",
     },
     {
-      question: "What are the eligibility criteria?",
+      question: "How do I create a custom token?",
       answer:
-        "Eligibility for this airdrop is based on several factors including past interactions with Solana protocols, token holdings, and on-chain activity prior to the snapshot date. Specific details are kept private to prevent gaming the system.",
+        "Solana Kit includes a token creation tool that lets you define the token name, symbol, total supply, and decimals. You'll need a small amount of SOL to cover the creation fees.",
     },
     {
-      question: "How many tokens can I claim?",
+      question: "How do I transfer SOL or tokens?",
       answer:
-        "The amount of tokens you can claim varies based on your level of participation in the Solana ecosystem. Once you check your eligibility, the system will display the exact amount you are eligible to receive.",
+        "Go to the 'Transfer' section, enter the recipient's Solana address, select the asset (SOL or a token), and submit the transaction. Make sure you have enough SOL to cover transaction fees.",
     },
     {
-      question: "When is the airdrop deadline?",
+      question: "How can I view my transaction history?",
       answer:
-        "The airdrop claim period will end on June 30, 2025. After this date, unclaimed tokens will be returned to the community treasury for future initiatives.",
-    },
-    {
-      question: "Do I need to pay gas fees to claim?",
-      answer:
-        "Yes, you will need a small amount of SOL in your wallet to cover the transaction fees on the Solana network. However, these fees are typically very minimal compared to other blockchains.",
+        "Solana Kit provides a history section where you can see recent transfers, token interactions, and airdrop claims. It fetches data directly from the blockchain.",
     },
     {
       question: "What wallets are supported?",
       answer:
-        "This airdrop supports major Solana wallets including Phantom, Solflare, and Torus. Make sure your wallet is connected to the Solana mainnet before attempting to claim.",
+        "Solana Kit supports major Solana wallets including Phantom, Solflare, and Torus. Make sure your wallet is connected to the Solana mainnet.",
     },
     {
-      question: "I'm having issues claiming my tokens. What should I do?",
+      question: "Do I need to pay gas fees?",
       answer:
-        "If you're experiencing issues, please ensure your wallet is properly connected and has sufficient SOL for transaction fees. If problems persist, please reach out to our support team through Discord or Twitter.",
+        "Yes, all operations on the Solana network require minimal transaction fees, payable in SOL. These are significantly lower than most other blockchains.",
+    },
+    {
+      question: "I'm facing issues with the app. What should I do?",
+      answer:
+        "Please ensure your wallet is connected correctly and has sufficient SOL for fees. If the issue persists, reach out via our support channels on Discord or Twitter.",
     },
   ];
 
