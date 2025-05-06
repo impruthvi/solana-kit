@@ -455,3 +455,83 @@ export const createSolanaToken = async (
         };
     }
 };
+
+/**
+ * Gets recent transactions for a Solana wallet address
+ * @param walletAddress The wallet address to fetch transactions for
+ * @param limit Optional maximum number of transactions to return (default: 10)
+ * @returns Object containing transactions or error message
+ */
+export const getWalletTransactions = async (
+    walletAddress: string,
+    limit: number = 10
+): Promise<{
+    success: boolean;
+    transactions?: Array<any>;
+    error?: string;
+}> => {
+    try {
+        console.log("Getting transactions for wallet:", walletAddress);
+
+        if (!isValidSolanaAddress(walletAddress)) {
+            return {
+                success: false,
+                error: "Invalid Solana wallet address."
+            };
+        }
+
+        const connection = getConnection();
+        const publicKey = new PublicKey(walletAddress);
+
+        // Get signatures of recent transactions
+        const signatures = await connection.getSignaturesForAddress(
+            publicKey,
+            { limit },
+            'confirmed'
+        );
+
+        if (!signatures || signatures.length === 0) {
+            return {
+                success: true,
+                transactions: [] // Return empty array instead of error when no transactions
+            };
+        }
+
+        // Fetch detailed transaction data for each signature
+        const transactions = await Promise.all(
+            signatures.map(async (sig) => {
+                // Get parsed transaction
+                const txData = await connection.getParsedTransaction(
+                    sig.signature,
+                    {
+                        commitment: 'confirmed',
+                        maxSupportedTransactionVersion: 0
+                    }
+                );
+                
+                // Return combined data
+                return {
+                    signature: sig.signature,
+                    blockTime: sig.blockTime,
+                    confirmationStatus: sig.confirmationStatus,
+                    err: sig.err,
+                    memo: sig.memo,
+                    details: txData
+                };
+            })
+        );
+
+        console.log(`Retrieved ${transactions.length} transactions for wallet`);
+
+        return {
+            success: true,
+            transactions
+        };
+    } catch (error) {
+        console.error("Failed to fetch wallet transactions:", error);
+        return {
+            success: false,
+            error: (error as Error).message || "Unknown error occurred while fetching wallet transactions."
+        };
+    }
+};
