@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🔱 Solana Kit
 
-## Getting Started
+Solana Kit is an all-in-one developer-friendly Solana toolkit built with Next.js. It allows users to:
 
-First, run the development server:
+- ✅ Claim SOL airdrops
+- 🔍 Check wallet eligibility
+- 🪙 Create custom SPL tokens
+- 🔁 Transfer SOL and tokens
+- 📜 View transaction history
+
+---
+
+## 🚀 Features
+
+- **Airdrop Claiming**: Eligible wallets can claim SOL tokens.
+- **Eligibility Checker**: Validate if a wallet qualifies for the airdrop.
+- **Token Creator**: Mint your own SPL token with custom details.
+- **Transfer Module**: Easily send SOL or SPL tokens to any wallet.
+- **Transaction History**: View recent transfers and wallet interactions.
+- **Responsive UI**: Built with Tailwind CSS and shadcn/ui components.
+- **Wallet Integration**: Phantom, Solflare, and other Solana wallets supported.
+
+---
+
+## 🛠 Tech Stack
+
+- **Framework**: [Next.js 14+](https://nextjs.org/)
+- **UI**: [Tailwind CSS](https://tailwindcss.com/), [shadcn/ui](https://ui.shadcn.com/)
+- **Icons**: [Lucide](https://lucide.dev/)
+- **Fonts**: [Geist](https://vercel.com/font)
+- **Solana Wallet Adapter**: For wallet integration
+
+---
+
+## 📦 Getting Started
+
+### 1. Clone the repository
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+git clone https://github.com/impruthvi/solana-kit.git
+cd solana-kit
+```
+
+### 2. Install dependencies
+
+```bash
+bun install
+```
+
+### 3. Set up environment variables
+
+Create a `.env.local` file in the root directory and add your Solana RPC URL:
+
+```bash
+NEXT_PUBLIC_SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
+```
+
+### 4. Start the development server
+
+```bash
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open your browser and navigate to `http://localhost:3000` to see the app in action.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 5. Build for production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+bun build
+```
 
-## Learn More
+### 6. Start the production server
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+bun start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🧑‍💻 Author
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Pruthvisinh Rajput**  
+GitHub: [@impruthvi](https://github.com/impruthvi)  
+Email: pruthvirajput97@gmail.com
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📜 License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).  
+Feel free to fork, modify, and contribute.
